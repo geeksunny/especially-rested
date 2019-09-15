@@ -201,8 +201,6 @@ void RestResponse<HttpClient>::finish() {
   // TODO: Clean up if necessary
 }
 
-//template class RestInterface<RestClient>;
-//template class RestInterface<RestClientSecure>;
 template class StringInterface<RestClient>;
 template class StringInterface<RestClientSecure>;
 template class StreamInterface<RestClient>;

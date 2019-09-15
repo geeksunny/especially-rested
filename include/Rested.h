@@ -101,6 +101,11 @@ class RestResponse : public Stream {
   StreamInterface<HttpClient> *client_;
 };
 
+typedef StringInterface<RestClient> BasicRestClient;
+typedef StringInterface<RestClientSecure> SecureRestClient;
+typedef StreamInterface<RestClient> StreamedBasicRestClient;
+typedef StreamInterface<RestClientSecure> StreamedSecureRestClient;
+
 }
 
 #endif //ESPECIALLY_RESTED_INCLUDE_RESTED_H_
