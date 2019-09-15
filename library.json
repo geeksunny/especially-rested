@@ -1,0 +1,16 @@
+{
+  "name": "especially-rested",
+  "description": "HTTP(S) REST client for ESP8266 Arduino.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geeksunny/especially-rested.git"
+  },
+  "authors": {
+    "name": "Justin Swanson",
+    "email": "geeksunny@gmail.com",
+    "url": "https://beepboop.me/"
+  },
+  "version": "0.1.0",
+  "frameworks": "arduino",
+  "platforms": "espressif8266"
+}
