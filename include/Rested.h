@@ -3,6 +3,10 @@
 
 #include <WiFiClientSecure.h>
 
+#ifndef REST_HEADER_MAX
+#define REST_HEADER_MAX               10
+#endif
+
 #define REST_RESPONSE_ERROR           -1
 #define REST_RESPONSE_STOPPED          0
 
@@ -14,38 +18,59 @@ class BaseClient {
  public:
   int getPort();
   void setPort(int port);
+  String getContentType();
+  void setContentType(const char *content_type);
+
  protected:
-  virtual WiFiClient *getClient() = 0;
- private:
   const char *host_;
   int port_;
+  const char *contentType_;
+
+  BaseClient(const char *host, int port, const char *content_type);
+
+  virtual WiFiClient *getClient() = 0;
 };
 
 class RestClient : public BaseClient {
  public:
-  explicit RestClient(const char *host, int port = 80);
+  explicit RestClient(const char *host, int port = 80, const char *content_type = nullptr);
+
  protected:
   WiFiClient *getClient() override;
+
  private:
   WiFiClient client_;
 };
 
 class RestClientSecure : public BaseClient {
  public:
-  explicit RestClientSecure(const char *host, int port = 443, const char* fingerprint = "");
-  // TODO: fingerprint setter(/getter?)
+  explicit RestClientSecure(const char *host,
+                            int port = 443,
+                            const char *fingerprint = "",
+                            const char *content_type = nullptr);
+
+  const char *getFingerprint();
+  void setFingerprint(const char *fingerprint);
+
  protected:
   WiFiClient *getClient() override;
+
  private:
   WiFiClientSecure client_;
+  const char *fingerprint_;
 };
 
 template<typename HttpClient>
 class RestInterface : public HttpClient {
   friend class RestResponse<HttpClient>;
   // TODO: virtual methods for readResponse, cleanup
+
  public:
+  const char *headers[REST_HEADER_MAX] = {nullptr};
+  bool clearHeadersAfterRequest = false;
+
   using HttpClient::HttpClient;
+
   void addHeader(const char *header);
   void clearHeaders();
   void setClearHeadersAfterRequest(bool clear_after_request);

@@ -6,6 +6,10 @@ namespace rested {
 // Class : BaseClient //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
+BaseClient::BaseClient(const char *host, int port, const char *content_type) : host_(host), port_(port) {
+  contentType_ = (content_type == nullptr) ? "application/x-www-form-urlencoded" : content_type;
+}
+
 int BaseClient::getPort() {
   return port_;
 }
@@ -14,11 +18,19 @@ void BaseClient::setPort(int port) {
   port_ = port;
 }
 
+String BaseClient::getContentType() {
+  return contentType_;
+}
+
+void BaseClient::setContentType(const char *content_type) {
+  contentType_ = content_type;
+}
+
 ////////////////////////////////////////////////////////////////
 // Class : RestClient //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-RestClient::RestClient(const char *host, int port) {
+RestClient::RestClient(const char *host, int port, const char *content_type) : BaseClient(host, port, content_type) {
   // todo: construct client_
 }
 
@@ -30,12 +42,21 @@ WiFiClient *RestClient::getClient() {
 // Class : RestClientSecure ////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-RestClientSecure::RestClientSecure(const char *host, int port, const char *fingerprint) {
+RestClientSecure::RestClientSecure(const char *host, int port, const char *fingerprint, const char *content_type)
+    : BaseClient(host, port, content_type), fingerprint_(fingerprint) {
   // todo: construct client_
 }
 
 WiFiClient *RestClientSecure::getClient() {
   return &client_;
+}
+
+const char *RestClientSecure::getFingerprint() {
+  return fingerprint_;
+}
+
+void RestClientSecure::setFingerprint(const char *fingerprint) {
+  fingerprint_ = fingerprint;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -157,8 +178,10 @@ void StreamInterface<HttpClient>::finish() {
 ////////////////////////////////////////////////////////////////
 // Class : RestResponse ////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
+
 template<typename HttpClient>
-RestResponse<HttpClient>::RestResponse(int status_code, StreamInterface<HttpClient> *client) : statusCode_(status_code), client_(client) {
+RestResponse<HttpClient>::RestResponse(int status_code, StreamInterface<HttpClient> *client)
+    : statusCode_(status_code), client_(client) {
 
 }
 
