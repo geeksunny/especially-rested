@@ -39,24 +39,25 @@ class RestClient : public BaseClient {
   WiFiClient *getClient() override;
 
  private:
-  WiFiClient client_;
+  WiFiClient client_{};
 };
 
 class RestClientSecure : public BaseClient {
  public:
   explicit RestClientSecure(const char *host,
                             int port = 443,
-                            const char *fingerprint = "",
+                            const char *fingerprint = nullptr,
                             const char *content_type = nullptr);
 
-  const char *getFingerprint();
+// TODO: Should the fingerprint be available outside the client? Does it even need to be stored?
+//  const char *getFingerprint();
   void setFingerprint(const char *fingerprint);
 
  protected:
   WiFiClient *getClient() override;
 
  private:
-  WiFiClientSecure client_;
+  WiFiClientSecure client_{};
   const char *fingerprint_;
 };
 
@@ -66,14 +67,23 @@ class RestInterface : public HttpClient {
   // TODO: virtual methods for readResponse, cleanup
 
  public:
-  const char *headers[REST_HEADER_MAX] = {nullptr};
-  bool clearHeadersAfterRequest = false;
-
   using HttpClient::HttpClient;
 
-  void addHeader(const char *header);
+  // TODO: consider refactoring into key/value parameters with built-in string assembly
+  bool addHeader(const char *header);
   void clearHeaders();
   void setClearHeadersAfterRequest(bool clear_after_request);
+
+ protected:
+  const char *headers_[REST_HEADER_MAX] = {nullptr};
+  int headerCount_ = 0;
+
+  bool makeRequest(const char *method, const char *path, const char *body);
+  int readResponse();
+  void finish();  // Better name?
+
+ private:
+  bool clearHeadersAfterRequest_ = false;
 };
 
 template<typename HttpClient>
@@ -100,7 +110,6 @@ class StreamInterface : public RestInterface<HttpClient> {
   RestResponse<HttpClient> put(const char *path, const char *body);
   RestResponse<HttpClient> del(const char *path);
   RestResponse<HttpClient> del(const char *path, const char *body);
-  void finish();
 };
 
 template<typename HttpClient>
@@ -119,7 +128,6 @@ class RestResponse : public Stream {
   int available() override;
   int read() override;
   int peek() override;
-  void finish();
 
  private:
   int statusCode_ = 0;

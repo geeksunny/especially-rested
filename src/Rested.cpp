@@ -44,19 +44,25 @@ WiFiClient *RestClient::getClient() {
 
 RestClientSecure::RestClientSecure(const char *host, int port, const char *fingerprint, const char *content_type)
     : BaseClient(host, port, content_type), fingerprint_(fingerprint) {
-  // todo: construct client_
+  //
 }
 
 WiFiClient *RestClientSecure::getClient() {
   return &client_;
 }
 
-const char *RestClientSecure::getFingerprint() {
-  return fingerprint_;
-}
+// TODO: Should there be a getter for fingerprint?
+//const char *RestClientSecure::getFingerprint() {
+//  return fingerprint_;
+//}
 
 void RestClientSecure::setFingerprint(const char *fingerprint) {
   fingerprint_ = fingerprint;
+  if (fingerprint) {
+    client_.setFingerprint(fingerprint);
+  } else {
+    client_.setInsecure();
+  }
 }
 
 ////////////////////////////////////////////////////////////////
@@ -64,18 +70,79 @@ void RestClientSecure::setFingerprint(const char *fingerprint) {
 ////////////////////////////////////////////////////////////////
 
 template<typename HttpClient>
-void RestInterface<HttpClient>::addHeader(const char *header) {
-  // TODO
+bool RestInterface<HttpClient>::addHeader(const char *header) {
+  if (headerCount_ < REST_HEADER_MAX) {
+    headers_[headerCount_++] = header;
+    return true;
+  }
+  return false;
 }
 
 template<typename HttpClient>
 void RestInterface<HttpClient>::clearHeaders() {
-  // TODO
+  headerCount_ = 0;
 }
 
 template<typename HttpClient>
 void RestInterface<HttpClient>::setClearHeadersAfterRequest(bool clear_after_request) {
-  // TODO
+  clearHeadersAfterRequest_ = clear_after_request;
+}
+
+template<typename HttpClient>
+bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path, const char *body) {
+  WiFiClient *client = this->getClient();
+  if (client->connect(HttpClient::host_, HttpClient::port_)) {
+    client->println(String(method) + " " + String(path) + " HTTP/1.1");
+    for (int i = 0; i < headerCount_; ++i) {
+      client->println(String(headers_[i]));
+    }
+    client->println("Host: " + String(HttpClient::host_) + ":" + String(HttpClient::port_));
+    client->println("Connection: close");
+    if (body) {
+      client->println("Content-Length: " + String(strlen(body)));
+      client->println("Content-Type: " + String(HttpClient::contentType_));
+      client->print("\r\n\r\n");
+      client->println(body);
+      client->print("\r\n\r\n");
+    } else {
+      client->print("\r\n");
+    }
+    return true;
+  }
+  return false;
+}
+
+template<typename HttpClient>
+int RestInterface<HttpClient>::readResponse() {
+  WiFiClient *client = HttpClient::getClient();
+  // TODO: Check client->available()
+  //  Delay before checking stream for first read?
+  if (client->findUntil(" ", "\r\n")) {
+    int httpStatus = client->parseInt();
+    // TODO: Read the rest of this line for HTTP status reason phrase
+    // TODO: Parse each line of the response, allow debug printing, save some(/all) values of the response?
+    // Fast tracking to the response content.
+    client->find("\r\n\r\n");
+    return httpStatus;
+  }
+  // Error result
+  return 0;
+}
+
+template<typename HttpClient>
+void RestInterface<HttpClient>::finish() {
+  // TODO: figure out a way to signal an active connection
+  //  Should I just manage my own bool cleanedUp_ flag instead?
+  if (!HttpClient::getClient()->connected()) {
+    return;
+    // TODO: is there other cleanup that might have to happen if the connection is closed before we call here?
+  }
+  // Cleanup
+  if (clearHeadersAfterRequest_) {
+    headerCount_ = 0;
+  }
+  HttpClient::getClient()->stop();
+  delay(50);  // Necessary?
 }
 
 ////////////////////////////////////////////////////////////////
@@ -170,10 +237,6 @@ RestResponse<HttpClient> StreamInterface<HttpClient>::del(const char *path, cons
   return RestResponse<HttpClient>(0, this);
 }
 
-template<typename HttpClient>
-void StreamInterface<HttpClient>::finish() {
-  // TODO
-}
 
 ////////////////////////////////////////////////////////////////
 // Class : RestResponse ////////////////////////////////////////
@@ -217,12 +280,6 @@ int RestResponse<HttpClient>::peek() {
   return (client_ == nullptr) ? -1 : client_->getClient()->peek();
 }
 
-template<typename HttpClient>
-void RestResponse<HttpClient>::finish() {
-  // TODO: check if already finished
-  // TODO: call client_.finish()
-  // TODO: Clean up if necessary
-}
 
 template class StringInterface<RestClient>;
 template class StringInterface<RestClientSecure>;
