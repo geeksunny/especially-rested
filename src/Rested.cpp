@@ -151,44 +151,48 @@ void RestInterface<HttpClient>::finish() {
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::request(const char *method, const char *path, const char *body, String *response) {
-  // TODO
+  if (this->makeRequest(method, path, body)) {
+    int statusCode = this->readResponse();
+    if (response != nullptr) {
+      WiFiClient *client = this->getClient();
+      response->reserve(response->length() + client->available());
+      while (client->available()) {
+        *response += (char) client->read();
+      }
+    }
+    return statusCode;
+  }
   return 0;
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::get(const char *path, String *response) {
-  // TODO
-  return 0;
+  return request("GET", path, nullptr, response);
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::post(const char *path, const char *body, String *response) {
-  // TODO
-  return 0;
+  return request("POST", path, body, response);
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::patch(const char *path, const char *body, String *response) {
-  // TODO
-  return 0;
+  return request("PATCH", path, body, response);
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::put(const char *path, const char *body, String *response) {
-  // TODO
-  return 0;
+  return request("PUT", path, body, response);
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::del(const char *path, String *response) {
-  // TODO
-  return 0;
+  return request("DEL", path, nullptr, response);
 }
 
 template<typename HttpClient>
 int StringInterface<HttpClient>::del(const char *path, const char *body, String *response) {
-  // TODO
-  return 0;
+  return request("DEL", path, body, response);
 }
 
 ////////////////////////////////////////////////////////////////
