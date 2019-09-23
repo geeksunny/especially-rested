@@ -77,10 +77,12 @@ class RestInterface : public HttpClient {
  protected:
   const char *headers_[REST_HEADER_MAX] = {nullptr};
   int headerCount_ = 0;
+  bool started_ = false;
 
   bool makeRequest(const char *method, const char *path, const char *body);
   int readResponse();
-  void finish();  // Better name?
+  bool isStarted();
+  void finish();
 
  private:
   bool clearHeadersAfterRequest_ = false;
@@ -128,6 +130,7 @@ class RestResponse : public Stream {
   int available() override;
   int read() override;
   int peek() override;
+  void finish();
 
  private:
   int statusCode_ = 0;

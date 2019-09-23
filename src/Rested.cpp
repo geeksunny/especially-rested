@@ -90,8 +90,12 @@ void RestInterface<HttpClient>::setClearHeadersAfterRequest(bool clear_after_req
 
 template<typename HttpClient>
 bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path, const char *body) {
+  if (started_) {
+    finish();
+  }
   WiFiClient *client = this->getClient();
   if (client->connect(HttpClient::host_, HttpClient::port_)) {
+    started_ = true;
     client->println(String(method) + " " + String(path) + " HTTP/1.1");
     for (int i = 0; i < headerCount_; ++i) {
       client->println(String(headers_[i]));
@@ -130,18 +134,21 @@ int RestInterface<HttpClient>::readResponse() {
 }
 
 template<typename HttpClient>
+bool RestInterface<HttpClient>::isStarted() {
+  return started_;
+}
+
+template<typename HttpClient>
 void RestInterface<HttpClient>::finish() {
-  // TODO: figure out a way to signal an active connection
-  //  Should I just manage my own bool cleanedUp_ flag instead?
-  if (!HttpClient::getClient()->connected()) {
+  if (!started_) {
     return;
-    // TODO: is there other cleanup that might have to happen if the connection is closed before we call here?
   }
   // Cleanup
   if (clearHeadersAfterRequest_) {
     headerCount_ = 0;
   }
   HttpClient::getClient()->stop();
+  started_ = false;
   delay(50);  // Necessary?
 }
 
@@ -160,6 +167,7 @@ int StringInterface<HttpClient>::request(const char *method, const char *path, c
         *response += (char) client->read();
       }
     }
+    this->finish();
     return statusCode;
   }
   return 0;
@@ -201,46 +209,42 @@ int StringInterface<HttpClient>::del(const char *path, const char *body, String 
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::request(const char *method, const char *path, const char *body) {
-  // TODO
+  if (this->makeRequest(method, path, body)) {
+    int statusCode = this->readResponse();
+    return RestResponse<HttpClient>(statusCode, this);
+  }
   return RestResponse<HttpClient>(0, this);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::get(const char *path) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("GET", path, nullptr);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::post(const char *path, const char *body) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("POST", path, body);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::patch(const char *path, const char *body) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("PATCH", path, body);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::put(const char *path, const char *body) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("PUT", path, body);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::del(const char *path) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("DEL", path, nullptr);
 }
 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::del(const char *path, const char *body) {
-  // TODO
-  return RestResponse<HttpClient>(0, this);
+  return request("DEL", path, body);
 }
-
 
 ////////////////////////////////////////////////////////////////
 // Class : RestResponse ////////////////////////////////////////
@@ -284,6 +288,12 @@ int RestResponse<HttpClient>::peek() {
   return (client_ == nullptr) ? -1 : client_->getClient()->peek();
 }
 
+template<typename HttpClient>
+void RestResponse<HttpClient>::finish() {
+  if (client_) {
+    client_->finish();
+  }
+}
 
 template class StringInterface<RestClient>;
 template class StringInterface<RestClientSecure>;
