@@ -130,6 +130,7 @@ class RestResponse : public Stream {
   int available() override;
   int read() override;
   int peek() override;
+  int statusCode();
   void finish();
 
  private:

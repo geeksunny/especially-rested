@@ -43,8 +43,8 @@ WiFiClient *RestClient::getClient() {
 ////////////////////////////////////////////////////////////////
 
 RestClientSecure::RestClientSecure(const char *host, int port, const char *fingerprint, const char *content_type)
-    : BaseClient(host, port, content_type), fingerprint_(fingerprint) {
-  //
+    : BaseClient(host, port, content_type) {
+  setFingerprint(fingerprint);
 }
 
 WiFiClient *RestClientSecure::getClient() {
@@ -286,6 +286,11 @@ int RestResponse<HttpClient>::read() {
 template<typename HttpClient>
 int RestResponse<HttpClient>::peek() {
   return (client_ == nullptr) ? -1 : client_->getClient()->peek();
+}
+
+template<typename HttpClient>
+int RestResponse<HttpClient>::statusCode() {
+  return statusCode_;
 }
 
 template<typename HttpClient>
