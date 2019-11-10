@@ -26,6 +26,14 @@ void BaseClient::setContentType(const char *content_type) {
   contentType_ = content_type;
 }
 
+BaseClient::operator bool() {
+  return host_ != nullptr;
+}
+
+BaseClient::operator bool() const {
+  return host_ != nullptr;
+}
+
 ////////////////////////////////////////////////////////////////
 // Class : RestClient //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////

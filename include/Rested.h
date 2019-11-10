@@ -12,7 +12,8 @@
 
 namespace rested {
 
-template<typename HttpClient> class RestResponse;
+template<typename HttpClient>
+class RestResponse;
 
 class BaseClient {
  public:
@@ -20,6 +21,9 @@ class BaseClient {
   void setPort(int port);
   String getContentType();
   void setContentType(const char *content_type);
+
+  explicit operator bool();
+  explicit operator bool() const;
 
  protected:
   const char *host_;
