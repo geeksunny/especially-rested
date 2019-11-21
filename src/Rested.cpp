@@ -39,7 +39,7 @@ BaseClient::operator bool() const {
 ////////////////////////////////////////////////////////////////
 
 RestClient::RestClient(const char *host, uint16_t port, const char *content_type) : BaseClient(host, port, content_type) {
-  // todo: construct client_
+  //
 }
 
 WiFiClient *RestClient::getClient() {
@@ -59,13 +59,7 @@ WiFiClient *RestClientSecure::getClient() {
   return &client_;
 }
 
-// TODO: Should there be a getter for fingerprint?
-//const char *RestClientSecure::getFingerprint() {
-//  return fingerprint_;
-//}
-
 void RestClientSecure::setFingerprint(const char *fingerprint) {
-  fingerprint_ = fingerprint;
   if (fingerprint) {
     client_.setFingerprint(fingerprint);
   } else {
@@ -127,18 +121,18 @@ bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path
 template<typename HttpClient>
 uint16_t RestInterface<HttpClient>::readResponse() {
   WiFiClient *client = HttpClient::getClient();
-  // TODO: Check client->available()
-  //  Delay before checking stream for first read?
-  if (client->findUntil(" ", "\r\n")) {
+  if (client->available() && client->findUntil(" ", "\r\n")) {
     uint16_t httpStatus = client->parseInt();
-    // TODO: Read the rest of this line for HTTP status reason phrase
-    // TODO: Parse each line of the response, allow debug printing, save some(/all) values of the response?
-    // Fast tracking to the response content.
-    client->find("\r\n\r\n");
-    return httpStatus;
+    if (httpStatus != 0) {
+      // TODO: Read the rest of this line for HTTP status reason phrase
+      // TODO: Parse each line of the response, allow debug printing, save some(/all) values of the response?
+      // Fast tracking to the response content.
+      client->find("\r\n\r\n");
+      return httpStatus;
+    }
   }
   // Error result
-  return 0;
+  return REST_RESPONSE_ERROR;
 }
 
 template<typename HttpClient>
@@ -275,9 +269,8 @@ RestResponse<HttpClient>::operator bool() const {
 }
 
 template<typename HttpClient>
-size_t RestResponse<HttpClient>::write(uint8_t uint_8) {
+__attribute__((deprecated)) size_t RestResponse<HttpClient>::write(uint8_t uint_8) {
   // This method does nothing. Do not use it.
-  // TODO: Add a static_assert or some other method to throw compiler warning/error when this is called somewhere.
   return 0;
 }
 

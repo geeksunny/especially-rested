@@ -53,8 +53,6 @@ class RestClientSecure : public BaseClient {
                             const char *fingerprint = nullptr,
                             const char *content_type = nullptr);
 
-// TODO: Should the fingerprint be available outside the client? Does it even need to be stored?
-//  const char *getFingerprint();
   void setFingerprint(const char *fingerprint);
 
  protected:
@@ -62,13 +60,11 @@ class RestClientSecure : public BaseClient {
 
  private:
   WiFiClientSecure client_{};
-  const char *fingerprint_;
 };
 
 template<typename HttpClient>
 class RestInterface : public HttpClient {
   friend class RestResponse<HttpClient>;
-  // TODO: virtual methods for readResponse, cleanup
 
  public:
   using HttpClient::HttpClient;
@@ -120,8 +116,6 @@ class StreamInterface : public RestInterface<HttpClient> {
 
 template<typename HttpClient>
 class RestResponse : public Stream {
-  // TODO: friend class
-  // TODO: could the template be removed here somehow?
   // TODO: add fields/accessors for content-type / response headers ?
 
  public:
@@ -130,7 +124,7 @@ class RestResponse : public Stream {
   explicit operator bool();
   explicit operator bool() const;
 
-  size_t write(uint8_t uint_8) override;
+  __attribute__((deprecated)) size_t write(uint8_t uint_8) override;
   int available() override;
   int read() override;
   int peek() override;
