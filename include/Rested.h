@@ -17,8 +17,8 @@ class RestResponse;
 
 class BaseClient {
  public:
-  int getPort();
-  void setPort(int port);
+  uint16_t getPort();
+  void setPort(uint16_t port);
   String getContentType();
   void setContentType(const char *content_type);
 
@@ -27,17 +27,17 @@ class BaseClient {
 
  protected:
   const char *host_;
-  int port_;
+  uint16_t port_;
   const char *contentType_;
 
-  BaseClient(const char *host, int port, const char *content_type);
+  BaseClient(const char *host, uint16_t port, const char *content_type);
 
   virtual WiFiClient *getClient() = 0;
 };
 
 class RestClient : public BaseClient {
  public:
-  explicit RestClient(const char *host, int port = 80, const char *content_type = nullptr);
+  explicit RestClient(const char *host, uint16_t port = 80, const char *content_type = nullptr);
 
  protected:
   WiFiClient *getClient() override;
@@ -49,7 +49,7 @@ class RestClient : public BaseClient {
 class RestClientSecure : public BaseClient {
  public:
   explicit RestClientSecure(const char *host,
-                            int port = 443,
+                            uint16_t port = 443,
                             const char *fingerprint = nullptr,
                             const char *content_type = nullptr);
 
@@ -80,11 +80,11 @@ class RestInterface : public HttpClient {
 
  protected:
   const char *headers_[REST_HEADER_MAX] = {nullptr};
-  int headerCount_ = 0;
+  uint8_t headerCount_ = 0;
   bool started_ = false;
 
   bool makeRequest(const char *method, const char *path, const char *body);
-  int readResponse();
+  uint16_t readResponse();
   bool isStarted();
   void finish();
 
@@ -96,13 +96,13 @@ template<typename HttpClient>
 class StringInterface : public RestInterface<HttpClient> {
  public:
   using RestInterface<HttpClient>::RestInterface;
-  int request(const char *method, const char *path, const char *body, String *response = nullptr);
-  int get(const char *path, String *response = nullptr);
-  int post(const char *path, const char *body, String *response = nullptr);
-  int patch(const char *path, const char *body, String *response = nullptr);
-  int put(const char *path, const char *body, String *response = nullptr);
-  int del(const char *path, String *response = nullptr);
-  int del(const char *path, const char *body, String *response = nullptr);
+  uint16_t request(const char *method, const char *path, const char *body, String *response = nullptr);
+  uint16_t get(const char *path, String *response = nullptr);
+  uint16_t post(const char *path, const char *body, String *response = nullptr);
+  uint16_t patch(const char *path, const char *body, String *response = nullptr);
+  uint16_t put(const char *path, const char *body, String *response = nullptr);
+  uint16_t del(const char *path, String *response = nullptr);
+  uint16_t del(const char *path, const char *body, String *response = nullptr);
 };
 
 template<typename HttpClient>
@@ -125,7 +125,7 @@ class RestResponse : public Stream {
   // TODO: add fields/accessors for content-type / response headers ?
 
  public:
-  explicit RestResponse(int status_code, StreamInterface<HttpClient> *client);
+  explicit RestResponse(uint16_t status_code, StreamInterface<HttpClient> *client);
 
   explicit operator bool();
   explicit operator bool() const;
@@ -138,7 +138,7 @@ class RestResponse : public Stream {
   void finish();
 
  private:
-  int statusCode_ = 0;
+  uint16_t statusCode_ = 0;
   StreamInterface<HttpClient> *client_;
 };
 

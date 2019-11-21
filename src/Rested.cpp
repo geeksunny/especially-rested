@@ -6,15 +6,15 @@ namespace rested {
 // Class : BaseClient //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-BaseClient::BaseClient(const char *host, int port, const char *content_type) : host_(host), port_(port) {
+BaseClient::BaseClient(const char *host, uint16_t port, const char *content_type) : host_(host), port_(port) {
   contentType_ = (content_type == nullptr) ? "application/x-www-form-urlencoded" : content_type;
 }
 
-int BaseClient::getPort() {
+uint16_t BaseClient::getPort() {
   return port_;
 }
 
-void BaseClient::setPort(int port) {
+void BaseClient::setPort(uint16_t port) {
   port_ = port;
 }
 
@@ -38,7 +38,7 @@ BaseClient::operator bool() const {
 // Class : RestClient //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-RestClient::RestClient(const char *host, int port, const char *content_type) : BaseClient(host, port, content_type) {
+RestClient::RestClient(const char *host, uint16_t port, const char *content_type) : BaseClient(host, port, content_type) {
   // todo: construct client_
 }
 
@@ -50,7 +50,7 @@ WiFiClient *RestClient::getClient() {
 // Class : RestClientSecure ////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-RestClientSecure::RestClientSecure(const char *host, int port, const char *fingerprint, const char *content_type)
+RestClientSecure::RestClientSecure(const char *host, uint16_t port, const char *fingerprint, const char *content_type)
     : BaseClient(host, port, content_type) {
   setFingerprint(fingerprint);
 }
@@ -105,7 +105,7 @@ bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path
   if (client->connect(HttpClient::host_, HttpClient::port_)) {
     started_ = true;
     client->println(String(method) + " " + String(path) + " HTTP/1.1");
-    for (int i = 0; i < headerCount_; ++i) {
+    for (uint8_t i = 0; i < headerCount_; ++i) {
       client->println(String(headers_[i]));
     }
     client->println("Host: " + String(HttpClient::host_) + ":" + String(HttpClient::port_));
@@ -125,12 +125,12 @@ bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path
 }
 
 template<typename HttpClient>
-int RestInterface<HttpClient>::readResponse() {
+uint16_t RestInterface<HttpClient>::readResponse() {
   WiFiClient *client = HttpClient::getClient();
   // TODO: Check client->available()
   //  Delay before checking stream for first read?
   if (client->findUntil(" ", "\r\n")) {
-    int httpStatus = client->parseInt();
+    uint16_t httpStatus = client->parseInt();
     // TODO: Read the rest of this line for HTTP status reason phrase
     // TODO: Parse each line of the response, allow debug printing, save some(/all) values of the response?
     // Fast tracking to the response content.
@@ -165,9 +165,9 @@ void RestInterface<HttpClient>::finish() {
 ////////////////////////////////////////////////////////////////
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::request(const char *method, const char *path, const char *body, String *response) {
+uint16_t StringInterface<HttpClient>::request(const char *method, const char *path, const char *body, String *response) {
   if (this->makeRequest(method, path, body)) {
-    int statusCode = this->readResponse();
+    uint16_t statusCode = this->readResponse();
     if (response != nullptr) {
       WiFiClient *client = this->getClient();
       response->reserve(response->length() + client->available());
@@ -182,32 +182,32 @@ int StringInterface<HttpClient>::request(const char *method, const char *path, c
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::get(const char *path, String *response) {
+uint16_t StringInterface<HttpClient>::get(const char *path, String *response) {
   return request("GET", path, nullptr, response);
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::post(const char *path, const char *body, String *response) {
+uint16_t StringInterface<HttpClient>::post(const char *path, const char *body, String *response) {
   return request("POST", path, body, response);
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::patch(const char *path, const char *body, String *response) {
+uint16_t StringInterface<HttpClient>::patch(const char *path, const char *body, String *response) {
   return request("PATCH", path, body, response);
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::put(const char *path, const char *body, String *response) {
+uint16_t StringInterface<HttpClient>::put(const char *path, const char *body, String *response) {
   return request("PUT", path, body, response);
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::del(const char *path, String *response) {
+uint16_t StringInterface<HttpClient>::del(const char *path, String *response) {
   return request("DEL", path, nullptr, response);
 }
 
 template<typename HttpClient>
-int StringInterface<HttpClient>::del(const char *path, const char *body, String *response) {
+uint16_t StringInterface<HttpClient>::del(const char *path, const char *body, String *response) {
   return request("DEL", path, body, response);
 }
 
@@ -218,7 +218,7 @@ int StringInterface<HttpClient>::del(const char *path, const char *body, String 
 template<typename HttpClient>
 RestResponse<HttpClient> StreamInterface<HttpClient>::request(const char *method, const char *path, const char *body) {
   if (this->makeRequest(method, path, body)) {
-    int statusCode = this->readResponse();
+    uint16_t statusCode = this->readResponse();
     return RestResponse<HttpClient>(statusCode, this);
   }
   return RestResponse<HttpClient>(0, this);
@@ -259,7 +259,7 @@ RestResponse<HttpClient> StreamInterface<HttpClient>::del(const char *path, cons
 ////////////////////////////////////////////////////////////////
 
 template<typename HttpClient>
-RestResponse<HttpClient>::RestResponse(int status_code, StreamInterface<HttpClient> *client)
+RestResponse<HttpClient>::RestResponse(uint16_t status_code, StreamInterface<HttpClient> *client)
     : statusCode_(status_code), client_(client) {
 
 }
