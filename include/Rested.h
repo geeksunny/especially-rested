@@ -52,8 +52,13 @@ class RestClientSecure : public BaseClient {
                             uint16_t port = 443,
                             const char *fingerprint = nullptr,
                             const char *content_type = nullptr);
+  explicit RestClientSecure(bool require_self_signed_cert,
+                            const char *host,
+                            uint16_t port = 443,
+                            const char *content_type = nullptr);
 
   void setFingerprint(const char *fingerprint);
+  void setRequireSelfSignedCert(bool require_self_signed_cert);
 
  protected:
   WiFiClient *getClient() override;

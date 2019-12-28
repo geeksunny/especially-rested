@@ -55,6 +55,13 @@ RestClientSecure::RestClientSecure(const char *host, uint16_t port, const char *
   setFingerprint(fingerprint);
 }
 
+RestClientSecure::RestClientSecure(const bool require_self_signed_cert,
+                                   const char *host,
+                                   uint16_t port,
+                                   const char *content_type) : BaseClient(host, port, content_type) {
+  setRequireSelfSignedCert(require_self_signed_cert);
+}
+
 WiFiClient *RestClientSecure::getClient() {
   return &client_;
 }
@@ -62,6 +69,14 @@ WiFiClient *RestClientSecure::getClient() {
 void RestClientSecure::setFingerprint(const char *fingerprint) {
   if (fingerprint) {
     client_.setFingerprint(fingerprint);
+  } else {
+    client_.setInsecure();
+  }
+}
+
+void RestClientSecure::setRequireSelfSignedCert(bool require_self_signed_cert) {
+  if (require_self_signed_cert) {
+    client_.allowSelfSignedCerts();
   } else {
     client_.setInsecure();
   }
