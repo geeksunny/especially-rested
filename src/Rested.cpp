@@ -1,5 +1,9 @@
 #include "Rested.h"
 
+#ifndef RESTED_READ_DELAY
+#define RESTED_READ_DELAY 25
+#endif
+
 namespace rested {
 
 ////////////////////////////////////////////////////////////////
@@ -136,6 +140,7 @@ bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path
 template<typename HttpClient>
 uint16_t RestInterface<HttpClient>::readResponse() {
   WiFiClient *client = HttpClient::getClient();
+  delay(RESTED_READ_DELAY);
   if (client->available() && client->findUntil(" ", "\r\n")) {
     uint16_t httpStatus = client->parseInt();
     if (httpStatus != 0) {
@@ -166,7 +171,7 @@ void RestInterface<HttpClient>::finish() {
   }
   HttpClient::getClient()->stop();
   started_ = false;
-  delay(50);  // Necessary?
+  delay(RESTED_READ_DELAY);  // Necessary?
 }
 
 ////////////////////////////////////////////////////////////////
