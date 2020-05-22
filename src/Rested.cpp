@@ -14,6 +14,10 @@ BaseClient::BaseClient(const char *host, uint16_t port, const char *content_type
   contentType_ = (content_type == nullptr) ? "application/x-www-form-urlencoded" : content_type;
 }
 
+bool BaseClient::connected() {
+  return getClient()->connected();
+}
+
 uint16_t BaseClient::getPort() {
   return port_;
 }
@@ -296,7 +300,15 @@ __attribute__((deprecated)) size_t RestResponse<HttpClient>::write(uint8_t uint_
 
 template<typename HttpClient>
 int RestResponse<HttpClient>::available() {
-  return (client_ == nullptr) ? false : client_->getClient()->available();
+  if (client_ == nullptr) {
+    return false;
+  }
+  WiFiClient *client = client_->getClient();
+  // BLOCK the thread if available() is zero but connected() is true.
+  // This will return once one of these conditions is not true.
+  while (!client->available() && client->connected());
+  // TODO: Should `yield()` be called in the above loop to prevent a watchdog reset?
+  return client->available();
 }
 
 template<typename HttpClient>
@@ -307,6 +319,11 @@ int RestResponse<HttpClient>::read() {
 template<typename HttpClient>
 int RestResponse<HttpClient>::peek() {
   return (client_ == nullptr) ? -1 : client_->getClient()->peek();
+}
+
+template<typename HttpClient>
+bool RestResponse<HttpClient>::connected() {
+  return (client_ == nullptr) ? false : client_->getClient()->connected();
 }
 
 template<typename HttpClient>

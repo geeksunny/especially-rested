@@ -17,6 +17,7 @@ class RestResponse;
 
 class BaseClient {
  public:
+  bool connected();
   uint16_t getPort();
   void setPort(uint16_t port);
   String getContentType();
@@ -133,6 +134,7 @@ class RestResponse : public Stream {
   int available() override;
   int read() override;
   int peek() override;
+  bool connected();
   int statusCode();
   void finish();
 
