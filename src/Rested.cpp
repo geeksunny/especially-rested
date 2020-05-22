@@ -1,7 +1,7 @@
 #include "Rested.h"
 
 #ifndef RESTED_READ_DELAY
-#define RESTED_READ_DELAY 25
+#define RESTED_READ_DELAY 50
 #endif
 
 namespace rested {
