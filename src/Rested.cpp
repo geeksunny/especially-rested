@@ -129,7 +129,7 @@ bool RestInterface<HttpClient>::makeRequest(const char *method, const char *path
     client->println("Connection: close");
     if (body) {
       client->println("Content-Length: " + String(strlen(body)));
-      client->println("Content-Type: " + String(HttpClient::contentType_));
+      client->print("Content-Type: " + String(HttpClient::contentType_));
       client->print("\r\n\r\n");
       client->println(body);
       client->print("\r\n\r\n");
