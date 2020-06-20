@@ -306,8 +306,9 @@ int RestResponse<HttpClient>::available() {
   WiFiClient *client = client_->getClient();
   // BLOCK the thread if available() is zero but connected() is true.
   // This will return once one of these conditions is not true.
-  while (!client->available() && client->connected());
-  // TODO: Should `yield()` be called in the above loop to prevent a watchdog reset?
+  while (!client->available() && client->connected()) {
+    yield();
+  }
   return client->available();
 }
 
